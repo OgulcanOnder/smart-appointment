@@ -2,11 +2,13 @@ package com.ogulcanonder.smart_appointment.service.impl;
 
 import com.ogulcanonder.smart_appointment.dto.request.BusinessAuthRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.EmployeeAuthRequestDTO;
+import com.ogulcanonder.smart_appointment.dto.request.LoginRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.UserAuthRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.response.AccountResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.BusinessResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.EmployeeResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.UserResponseDTO;
+import com.ogulcanonder.smart_appointment.dto.response.AuthResponseDTO;
 import com.ogulcanonder.smart_appointment.entity.Account;
 import com.ogulcanonder.smart_appointment.entity.City;
 import com.ogulcanonder.smart_appointment.entity.District;
@@ -22,6 +24,14 @@ import com.ogulcanonder.smart_appointment.service.CityService;
 import com.ogulcanonder.smart_appointment.service.DistrictService;
 import com.ogulcanonder.smart_appointment.service.UserService;
 import com.ogulcanonder.smart_appointment.service.EmployeeService;
+import com.ogulcanonder.smart_appointment.service.JwtService;
+import com.ogulcanonder.smart_appointment.service.RefreshTokenService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,10 +48,16 @@ public class AuthServiceImpl implements AuthService {
     private final DistrictService districtService;
     private final UserService userService;
     private final EmployeeService employeeService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final UserDetailsService userDetailsService;
 
     public AuthServiceImpl(AccountService accountService, BusinessService businessService,
                            PasswordEncoder passwordEncoder, CityService cityService, DistrictService districtService,
-                           UserService userService, EmployeeService employeeService) {
+                           UserService userService, EmployeeService employeeService,
+                           AuthenticationManager authenticationManager, JwtService jwtService,
+                           RefreshTokenService refreshTokenService, UserDetailsService userDetailsService) {
         this.accountService = accountService;
         this.businessService = businessService;
         this.passwordEncoder = passwordEncoder;
@@ -49,6 +65,10 @@ public class AuthServiceImpl implements AuthService {
         this.districtService = districtService;
         this.userService = userService;
         this.employeeService = employeeService;
+        this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Transactional
@@ -136,5 +156,40 @@ public class AuthServiceImpl implements AuthService {
         return new EmployeeResponseDTO(employee.getId(), employee.getName(), employee.getSurname(),
                 new AccountResponseDTO(employee.getAccount().getEmail(), employee.getAccount().getPhone(),
                         employee.getAccount().getAccountType()));
+    }
+
+    @Override
+    public AuthResponseDTO login(LoginRequestDTO loginRequestDTO) {
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                loginRequestDTO.email(), loginRequestDTO.password()));
+        if (authentication.isAuthenticated()) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String accessToken = jwtService.generateAccessToken(userDetails);
+            String refreshToken = jwtService.generateRefreshToken(userDetails);
+            String accountId = jwtService.extractAllClaims(refreshToken).get("accountId").toString();
+            refreshTokenService.save(accountId, refreshToken);
+            return new AuthResponseDTO(accessToken, refreshToken);
+        }
+        throw new BadCredentialsException("Invalid e-mail or password");
+    }
+
+    @Override
+    public AuthResponseDTO refreshToken(String refreshToken) {
+        String accountId = jwtService.extractAllClaims(refreshToken).get("accountId").toString();
+        String email = jwtService.extractAllClaims(refreshToken).getSubject();
+        if (refreshTokenService.isValid(accountId, refreshToken)) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+            String newAccessToken = jwtService.generateAccessToken(userDetails);
+            String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+            refreshTokenService.save(accountId, newRefreshToken);
+            return new AuthResponseDTO(newAccessToken, newRefreshToken);
+        }
+        throw new BadCredentialsException("Invalid refresh token");
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        String accountId = jwtService.extractAllClaims(refreshToken).get("accountId").toString();
+        refreshTokenService.delete(accountId);
     }
 }

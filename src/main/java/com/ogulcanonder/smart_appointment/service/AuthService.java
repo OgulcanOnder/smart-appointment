@@ -2,9 +2,11 @@ package com.ogulcanonder.smart_appointment.service;
 
 import com.ogulcanonder.smart_appointment.dto.request.BusinessAuthRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.EmployeeAuthRequestDTO;
+import com.ogulcanonder.smart_appointment.dto.request.LoginRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.UserAuthRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.response.BusinessResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.EmployeeResponseDTO;
+import com.ogulcanonder.smart_appointment.dto.response.AuthResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.UserResponseDTO;
 
 public interface AuthService {
@@ -13,4 +15,10 @@ public interface AuthService {
     public UserResponseDTO userRegister(UserAuthRequestDTO userAuthRequestDTO);
 
     public EmployeeResponseDTO employeeRegister(EmployeeAuthRequestDTO employeeAuthRequestDTO);
+
+    public AuthResponseDTO login(LoginRequestDTO loginRequestDTO);
+
+    public AuthResponseDTO refreshToken(String refreshToken);
+
+    public void logout(String refreshToken);
 }

@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Set;
@@ -31,6 +33,10 @@ public class AuthServiceImplTest {
     private DistrictService districtService;
     private UserService userService;
     private EmployeeService employeeService;
+    private AuthenticationManager authenticationManager;
+    private JwtService jwtService;
+    private RefreshTokenService refreshTokenService;
+    private UserDetailsService userDetailsService;
 
     @BeforeEach
     public void setUp() {
@@ -41,8 +47,13 @@ public class AuthServiceImplTest {
         districtService = Mockito.mock(DistrictService.class);
         userService = Mockito.mock(UserService.class);
         employeeService = Mockito.mock(EmployeeService.class);
+        authenticationManager = Mockito.mock(AuthenticationManager.class);
+        jwtService = Mockito.mock(JwtService.class);
+        refreshTokenService = Mockito.mock(RefreshTokenService.class);
+        userDetailsService = Mockito.mock(UserDetailsService.class);
         authServiceImpl = new AuthServiceImpl(accountService, businessService, passwordEncoder,
-                cityService, districtService, userService, employeeService);
+                cityService, districtService, userService, employeeService,authenticationManager,
+                jwtService,refreshTokenService,userDetailsService);
     }
 
 
