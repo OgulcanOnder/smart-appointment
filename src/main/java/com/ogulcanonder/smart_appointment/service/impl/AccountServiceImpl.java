@@ -3,6 +3,7 @@ package com.ogulcanonder.smart_appointment.service.impl;
 import com.ogulcanonder.smart_appointment.entity.Account;
 import com.ogulcanonder.smart_appointment.repository.AccountRepository;
 import com.ogulcanonder.smart_appointment.service.AccountService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,5 +18,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void create(Account account) {
         accountRepository.save(account);
+    }
+
+    @Override
+    public Account findByEmail(String email) {
+        return accountRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
     }
 }

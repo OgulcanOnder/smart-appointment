@@ -19,14 +19,33 @@ services:
     networks:
       - ortakag
 
+  redis:
+    image: redis:latest
+    restart: unless-stopped
+    container_name: redis
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ortakag
+
   smartappointment:
     image: ogulcanonder/smart-appointment:v1
     container_name: smart-appointment
     ports:
       - 8080:8080
     depends_on:
-     db:
-       condition: service_healthy
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - ortakag
     environment:
@@ -34,9 +53,17 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: ${MYSQL_DATABASE}
       SPRING_DATASOURCE_USERNAME: ${MYSQL_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
-
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_ACCESS_TOKEN_EXPIRATION_MILLIS: ${JWT_ACCESS_TOKEN_EXPIRATION_MILLIS}
+      JWT_REFRESH_TOKEN_EXPIRATION_MILLIS: ${JWT_REFRESH_TOKEN_EXPIRATION_MILLIS}
+      SPRING_DATA_REDIS_HOST: ${REDIS_HOST}
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT}
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SPRING_DATA_REDIS_TIMEOUT: ${REDIS_TIMEOUT}
 networks:
   ortakag:
     driver: bridge
 
+volumes:
+  redis_data:
   
