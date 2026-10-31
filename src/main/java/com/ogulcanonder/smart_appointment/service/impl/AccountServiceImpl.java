@@ -4,6 +4,7 @@ import com.ogulcanonder.smart_appointment.entity.Account;
 import com.ogulcanonder.smart_appointment.exception.ResourceNotFoundException;
 import com.ogulcanonder.smart_appointment.repository.AccountRepository;
 import com.ogulcanonder.smart_appointment.service.AccountService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,6 +18,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void create(Account account) {
+        if (accountRepository.existsByEmailOrPhone(account.getEmail(), account.getPhone())) {
+            throw new DataIntegrityViolationException("Email or Phone already exists");
+        }
         accountRepository.save(account);
     }
 

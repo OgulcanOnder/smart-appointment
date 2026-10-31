@@ -47,7 +47,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
                 .requestMatchers("/api/v1/auth/register/employees").hasAnyAuthority(Role.ROLE_BUSINESS.name())
                 .requestMatchers("/api/v1/auth/logout").authenticated()
-                .requestMatchers("/api/v1/auth/register/business").permitAll()
+                .requestMatchers("/api/v1/auth/register/businesses").permitAll()
                 .requestMatchers("/api/v1/auth/register/users").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
                 .requestMatchers("/api/v1/auth/refresh").permitAll());
