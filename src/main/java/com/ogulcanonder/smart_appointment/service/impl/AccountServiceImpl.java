@@ -1,9 +1,9 @@
 package com.ogulcanonder.smart_appointment.service.impl;
 
 import com.ogulcanonder.smart_appointment.entity.Account;
+import com.ogulcanonder.smart_appointment.exception.ResourceNotFoundException;
 import com.ogulcanonder.smart_appointment.repository.AccountRepository;
 import com.ogulcanonder.smart_appointment.service.AccountService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,6 +23,6 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account findByEmail(String email) {
         return accountRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
     }
 }

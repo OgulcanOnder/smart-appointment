@@ -1,6 +1,7 @@
 package com.ogulcanonder.smart_appointment.service.impl;
 
 import com.ogulcanonder.smart_appointment.entity.District;
+import com.ogulcanonder.smart_appointment.exception.ResourceNotFoundException;
 import com.ogulcanonder.smart_appointment.repository.DistrictRepository;
 import com.ogulcanonder.smart_appointment.service.DistrictService;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,6 @@ public class DistrictServiceImpl implements DistrictService {
     @Override
     public District getById(int id) {
         return districtRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("District not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("District not found"));
     }
 }

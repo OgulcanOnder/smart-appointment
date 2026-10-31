@@ -1,5 +1,6 @@
 package com.ogulcanonder.smart_appointment.filter;
 
+import com.ogulcanonder.smart_appointment.exception.security.CustomAuthenticationEntryPoint;
 import com.ogulcanonder.smart_appointment.service.JwtService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -11,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,11 +29,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
     private final UserDetailsService userDetailsService;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private static final int AUTH_HEADER_SIZE = 7;
 
-    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthFilter(JwtService jwtService, UserDetailsService userDetailsService,
+                         CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
     }
 
     @Override
@@ -48,6 +53,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             } catch (ExpiredJwtException | MalformedJwtException | UnsupportedJwtException |
                      IllegalArgumentException | SignatureException exception) {
                 logger.warn("Invalid or Expired JWT Token: {}", exception.getMessage());
+                SecurityContextHolder.clearContext();
+                customAuthenticationEntryPoint.commence(request, response,
+                        new BadCredentialsException("Invalid JWT token", exception));
                 return;
             }
         }
