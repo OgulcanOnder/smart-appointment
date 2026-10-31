@@ -1,6 +1,7 @@
 package com.ogulcanonder.smart_appointment.service.impl;
 
 import com.ogulcanonder.smart_appointment.entity.City;
+import com.ogulcanonder.smart_appointment.exception.ResourceNotFoundException;
 import com.ogulcanonder.smart_appointment.repository.CityRepository;
 import com.ogulcanonder.smart_appointment.service.CityService;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,6 @@ public class CityServiceImpl implements CityService {
 
     @Override
     public City getById(int id) {
-        return cityRepository.findById(id).orElseThrow(() -> new RuntimeException("City Not Found"));
+        return cityRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("City Not Found"));
     }
 }

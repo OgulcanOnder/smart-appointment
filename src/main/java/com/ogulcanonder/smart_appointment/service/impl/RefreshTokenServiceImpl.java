@@ -1,8 +1,8 @@
 package com.ogulcanonder.smart_appointment.service.impl;
 
+import com.ogulcanonder.smart_appointment.exception.ResourceNotFoundException;
 import com.ogulcanonder.smart_appointment.service.RefreshTokenService;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -42,7 +42,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public void delete(String accountId) {
-        find(accountId).orElseThrow(() -> new BadCredentialsException("Not Found Refresh Token"));
+        find(accountId).orElseThrow(() -> new ResourceNotFoundException("Not Found Refresh Token"));
         redisTemplate.delete(buildKey(accountId));
     }
 }
