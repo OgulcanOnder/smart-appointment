@@ -1,36 +1,42 @@
 package com.ogulcanonder.smart_appointment.controller;
 
 import com.ogulcanonder.smart_appointment.dto.request.BusinessAuthRequestDTO;
-import com.ogulcanonder.smart_appointment.dto.request.UserAuthRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.EmployeeAuthRequestDTO;
+import com.ogulcanonder.smart_appointment.dto.request.ForgotPasswordRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.LoginRequestDTO;
+import com.ogulcanonder.smart_appointment.dto.request.PasswordResetRequestDTO;
+import com.ogulcanonder.smart_appointment.dto.request.UserAuthRequestDTO;
+import com.ogulcanonder.smart_appointment.dto.response.AccessTokenResponseDTO;
+import com.ogulcanonder.smart_appointment.dto.response.AuthResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.BusinessResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.EmployeeResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.UserResponseDTO;
-import com.ogulcanonder.smart_appointment.dto.response.AccessTokenResponseDTO;
-import com.ogulcanonder.smart_appointment.dto.response.AuthResponseDTO;
 import com.ogulcanonder.smart_appointment.service.AuthService;
 import com.ogulcanonder.smart_appointment.service.CookieService;
+import com.ogulcanonder.smart_appointment.service.PasswordResetService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CookieValue;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthService authService;
     private final CookieService cookieService;
+    private final PasswordResetService passwordResetService;
 
-    public AuthController(AuthService authService, CookieService cookieService) {
+    public AuthController(AuthService authService, CookieService cookieService,
+                          PasswordResetService passwordResetService) {
         this.authService = authService;
         this.cookieService = cookieService;
+        this.passwordResetService = passwordResetService;
     }
 
     @PostMapping("/register/businesses")
@@ -76,4 +82,18 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).header(
                 HttpHeaders.SET_COOKIE, responseCookie.toString()).build();
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequestDTO forgotPasswordRequestDTO) {
+        passwordResetService.processRequest(forgotPasswordRequestDTO.email());
+        return ResponseEntity.status(HttpStatus.OK).body("If the e-mail is registered, you will get a reset link");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO) {
+        passwordResetService.resetPassword(passwordResetRequestDTO);
+        return ResponseEntity.status(HttpStatus.OK).body("Reset Password Successful");
+    }
+
 }
