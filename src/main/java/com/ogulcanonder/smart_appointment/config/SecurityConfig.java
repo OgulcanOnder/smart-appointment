@@ -50,7 +50,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/register/businesses").permitAll()
                 .requestMatchers("/api/v1/auth/register/users").permitAll()
                 .requestMatchers("/api/v1/auth/login").permitAll()
-                .requestMatchers("/api/v1/auth/refresh").permitAll());
+                .requestMatchers("/api/v1/auth/refresh").permitAll()
+                .requestMatchers("/api/v1/auth/forgot-password").permitAll()
+                .requestMatchers("/api/v1/auth/reset-password").permitAll());
         http.sessionManagement(sessionManagement -> sessionManagement
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
