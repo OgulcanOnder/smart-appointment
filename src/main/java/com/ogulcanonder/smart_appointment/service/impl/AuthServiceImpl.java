@@ -5,27 +5,28 @@ import com.ogulcanonder.smart_appointment.dto.request.EmployeeAuthRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.LoginRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.request.UserAuthRequestDTO;
 import com.ogulcanonder.smart_appointment.dto.response.AccountResponseDTO;
+import com.ogulcanonder.smart_appointment.dto.response.AuthResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.BusinessResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.EmployeeResponseDTO;
 import com.ogulcanonder.smart_appointment.dto.response.UserResponseDTO;
-import com.ogulcanonder.smart_appointment.dto.response.AuthResponseDTO;
 import com.ogulcanonder.smart_appointment.entity.Account;
+import com.ogulcanonder.smart_appointment.entity.Business;
 import com.ogulcanonder.smart_appointment.entity.City;
 import com.ogulcanonder.smart_appointment.entity.District;
-import com.ogulcanonder.smart_appointment.entity.Business;
-import com.ogulcanonder.smart_appointment.entity.User;
 import com.ogulcanonder.smart_appointment.entity.Employee;
+import com.ogulcanonder.smart_appointment.entity.User;
 import com.ogulcanonder.smart_appointment.enums.AccountType;
 import com.ogulcanonder.smart_appointment.enums.Role;
-import com.ogulcanonder.smart_appointment.service.AuthService;
+import com.ogulcanonder.smart_appointment.exception.InvalidCredentialsException;
 import com.ogulcanonder.smart_appointment.service.AccountService;
+import com.ogulcanonder.smart_appointment.service.AuthService;
 import com.ogulcanonder.smart_appointment.service.BusinessService;
 import com.ogulcanonder.smart_appointment.service.CityService;
 import com.ogulcanonder.smart_appointment.service.DistrictService;
-import com.ogulcanonder.smart_appointment.service.UserService;
 import com.ogulcanonder.smart_appointment.service.EmployeeService;
 import com.ogulcanonder.smart_appointment.service.JwtService;
 import com.ogulcanonder.smart_appointment.service.RefreshTokenService;
+import com.ogulcanonder.smart_appointment.service.UserService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -160,17 +161,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponseDTO login(LoginRequestDTO loginRequestDTO) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequestDTO.email(), loginRequestDTO.password()));
-        if (authentication.isAuthenticated()) {
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    loginRequestDTO.email(), loginRequestDTO.password()));
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String accessToken = jwtService.generateAccessToken(userDetails);
             String refreshToken = jwtService.generateRefreshToken(userDetails);
             String accountId = jwtService.extractAllClaims(refreshToken).get("accountId").toString();
             refreshTokenService.save(accountId, refreshToken);
             return new AuthResponseDTO(accessToken, refreshToken);
+        } catch (BadCredentialsException exception) {
+            throw new InvalidCredentialsException("Invalid e-mail or password");
         }
-        throw new BadCredentialsException("Invalid e-mail or password");
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.ogulcanonder.smart_appointment.service.impl;
 
+import com.ogulcanonder.smart_appointment.exception.ResourceNotFoundException;
 import com.ogulcanonder.smart_appointment.service.AccountService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +17,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return accountService.findByEmail(email);
+        try {
+            return accountService.findByEmail(email);
+        } catch (ResourceNotFoundException exception) {
+            throw new UsernameNotFoundException("Account not found");
+        }
     }
 }
