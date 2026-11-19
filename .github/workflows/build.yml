@@ -23,7 +23,7 @@ jobs:
           java-version: 21
 
       - name : Set up Maven
-        uses: stcarolas/setup-maven@v5
+        uses: stcarolas/setup-maven@v5.1
         with:
           maven-version: 3.8.2
 
