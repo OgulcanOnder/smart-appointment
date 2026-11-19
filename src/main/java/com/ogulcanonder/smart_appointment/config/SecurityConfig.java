@@ -6,6 +6,7 @@ import com.ogulcanonder.smart_appointment.exception.security.CustomAuthenticatio
 import com.ogulcanonder.smart_appointment.filter.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -46,6 +47,9 @@ public class SecurityConfig {
         http.httpBasic(httpBasicAuth -> httpBasicAuth.disable());
         http.authorizeHttpRequests(authorizeRequests -> authorizeRequests
                 .requestMatchers("/api/v1/auth/register/employees").hasAnyAuthority(Role.ROLE_BUSINESS.name())
+                .requestMatchers(HttpMethod.POST, "/api/v1/working-hours").hasAuthority(Role.ROLE_EMPLOYEE.name())
+                .requestMatchers(HttpMethod.GET, "/api/v1/working-hours/{employeeId}").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/v1/working-hours/{id}").hasAuthority(Role.ROLE_EMPLOYEE.name())
                 .requestMatchers("/api/v1/auth/logout").authenticated()
                 .requestMatchers("/api/v1/auth/register/businesses").permitAll()
                 .requestMatchers("/api/v1/auth/register/users").permitAll()

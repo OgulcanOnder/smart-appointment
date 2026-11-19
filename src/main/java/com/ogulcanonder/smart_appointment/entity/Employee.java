@@ -32,6 +32,9 @@ public class Employee {
     @OneToOne
     private Account account;
 
+    @OneToOne(mappedBy = "employee")
+    private WorkingHour workingHour;
+
     public Employee() {
     }
 
